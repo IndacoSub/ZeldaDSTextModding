@@ -1,0 +1,14 @@
+.vs/*
+*edit*/*
+*original*/*
+Tinke/*
+*.nds
+*.1
+*.suo
+*.v2
+*.lock
+*.vsidx
+*.pdb
+.gitignore_
+*.7z
+*.bak
