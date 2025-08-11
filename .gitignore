@@ -12,3 +12,10 @@ Tinke/*
 .gitignore_
 *.7z
 *.bak
+/BMGRandomizerSharp/BMGRandomizerSharp/bin
+/BMGRandomizerSharp/BMGRandomizerSharp/obj
+/BMGRandomizerSharp/BMGRandomizerSharpGUI/bin
+BMGRandomizerSharp/BMGRandomizerSharpGUI/BMGRandomizerSharpGUI.csproj.user
+/BMGRandomizerSharp/BMGRandomizerSharpGUI/obj
+/BMGRandomizerSharp/BMGRandomizerSharpGUI/Properties/PublishProfiles
+/BMGRandomizerSharp/.vs

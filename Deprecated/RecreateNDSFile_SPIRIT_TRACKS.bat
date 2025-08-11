@@ -10,6 +10,7 @@ ECHO 6. This program expects you to copy the newly-created .bmg_out files into t
 ECHO 7. Do *NOT* pass the "edit" folder as an argument to the randomizer, create another folder instead!
 ECHO 8. Files from Phantom Hourglass are **NOT COMPATIBLE** with Spirit Tracks!
 
+type nul > "EditedROM.nds"
 XCOPY .\SPIRITTRACKS_BKIJ01_00.nds .\EditedROM.nds /Q /I /Y
 
 :ask_replace_msg

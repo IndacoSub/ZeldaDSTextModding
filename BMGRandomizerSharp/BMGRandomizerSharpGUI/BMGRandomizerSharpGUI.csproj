@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference the shared engine so the GUI can access RandomizerEngine + Options -->
+    <ProjectReference Include="..\BMGRandomizerSharp\BMGRandomizerSharp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Ensure .py files from tools are copied to output -->
+    <Content Include="tools\**\*.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <!-- Ensure .bat files from tools are copied to output -->
+    <Content Include="tools\**\*.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

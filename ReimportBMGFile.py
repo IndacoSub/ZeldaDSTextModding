@@ -672,59 +672,73 @@ def get_escape_by_string(string):
     # return ndspy.bmg.Message.Escape(4, bytearray(b'\x'))
   pass
 
-language = "Japanese"
+# --- Usage Help ---
+if len(sys.argv) < 4:
+    print("Usage: ReimportBMGFile.py <ROM.nds> <bmg_out.txt> <ROM path to replace> [language] [output.nds]")
+    sys.exit(1)
 
+# --- Arguments ---
 rom_filename = sys.argv[1]
-rom = ndspy.rom.NintendoDSRom.fromFile(rom_filename) # Read ROM from argument
-filename_in = sys.argv[2] # Read the BMG_Out (txt) filename
+filename_in = sys.argv[2]
 to_replace = sys.argv[3]
-filename_out = filename_in.strip("_out") # Remove "_out" from the name
-messages = [] # Empty list
-bmgData = rom.getFileByName(language + to_replace)
-bmg = ndspy.bmg.BMG(bmgData)
-with open(filename_in, "r", encoding="utf-16") as reader: # Read file as utf-16
-  print("file red: " + filename_in)
-  all_lines = reader.readlines() # Read lines
-  for line in all_lines: # Iterate lines
-    #mes_before = line[0 : len(line) - 1] # Remove \n
-    messages.append(line) # Add line from file
-print(str(len(messages)) + " lines from .bmg_out VS " + str(len(bmg.messages)) + " from the ROM")
-last_valid_message = bmg.messages[0]
-for msg_index in range (0, len(messages)):
+language = sys.argv[4] if len(sys.argv) > 4 else "Japanese"
+output_rom = sys.argv[5] if len(sys.argv) > 5 else "EditedROM.nds"
 
-  if msg_index >= len(bmg.messages):
-    bmg.messages.append(last_valid_message)
-  else:
-    last_valid_message = bmg.messages[msg_index]
-    
-  specific_line = messages[msg_index]
-  specific_line = specific_line.strip().strip('﻿').replace("\\n", "\n")
-  contains_escapes = specific_line.find("[") != -1 and specific_line.find("]") != -1
-  if contains_escapes:
-    bmg.messages[msg_index].stringParts.clear()
-    while(contains_escapes):
-      escape_begin_index = specific_line.find("[")
-      if escape_begin_index > 0:
-        escape_begin = specific_line[: escape_begin_index]
-        bmg.messages[msg_index].stringParts.append(escape_begin)
-      specific_line = specific_line[escape_begin_index + 1 :]
-      escape_end_index = specific_line.find("]")
-      escape_str = specific_line[: escape_end_index]
-      converted_escape = get_escape_by_string(escape_str)
-      bmg.messages[msg_index].stringParts.append(converted_escape)
-      specific_line = specific_line[escape_end_index + 1 :]
-      contains_escapes = specific_line.find("[") != -1 and specific_line.find("]") != -1
-    if len(specific_line) > 0:
-      bmg.messages[msg_index].stringParts.append(specific_line)
-  else:
-    bmg.messages[msg_index].stringParts = [specific_line]
-    
-# Debug    
-#for b_message in bmg.messages:
-  #print("\"" + str(b_message) + "\"")
-  #print(str(ord(str(b_message)[0])))
-  
-if os.path.isfile(filename_out): # Remove file if it existds
-  os.remove(filename_out)
-rom.setFileByName(language + to_replace, bmg.save())
-rom.saveToFile('EditedROM.nds')
+print(f"[INFO] Language used: {language}")
+print(f"[INFO] Saving output to: {output_rom}")
+
+# --- Load ROM ---
+rom = ndspy.rom.NintendoDSRom.fromFile(rom_filename)
+rom_path = language + to_replace
+
+# --- Read original BMG ---
+try:
+    bmgData = rom.getFileByName(rom_path)
+except ValueError:
+    print(f"[ERROR] Could not find file: {rom_path}")
+    sys.exit(1)
+
+bmg = ndspy.bmg.BMG(bmgData)
+
+# --- Read lines from file ---
+with open(filename_in, "r", encoding="utf-16") as reader:
+    messages = reader.readlines()
+
+print(f"[INFO] Loaded {len(messages)} lines from .bmg_out vs {len(bmg.messages)} original messages")
+
+# --- Inject new messages ---
+last_valid_message = bmg.messages[0]
+for msg_index in range(len(messages)):
+    if msg_index >= len(bmg.messages):
+        bmg.messages.append(last_valid_message)
+    else:
+        last_valid_message = bmg.messages[msg_index]
+
+    line = messages[msg_index].strip().strip('﻿').replace("\\n", "\n")
+    contains_escapes = "[" in line and "]" in line
+
+    if contains_escapes:
+        bmg.messages[msg_index].stringParts.clear()
+        while contains_escapes:
+            start = line.find("[")
+            if start > 0:
+                bmg.messages[msg_index].stringParts.append(line[:start])
+            line = line[start + 1:]
+            end = line.find("]")
+            escape = line[:end]
+            bmg.messages[msg_index].stringParts.append(get_escape_by_string(escape))
+            line = line[end + 1:]
+            contains_escapes = "[" in line and "]" in line
+        if line:
+            bmg.messages[msg_index].stringParts.append(line)
+    else:
+        bmg.messages[msg_index].stringParts = [line]
+
+# --- Save to ROM ---
+filename_out = filename_in.strip("_out")
+if os.path.isfile(filename_out):
+    os.remove(filename_out)
+
+rom.setFileByName(rom_path, bmg.save())
+rom.saveToFile(output_rom)
+print(f"[DONE] ROM saved successfully to: {output_rom}")
